@@ -95,7 +95,7 @@ BrainBuddyAI : Deep Learning Based Engagement Measuring Model (CNN → LSTM)
 
 <br>
 
-모델 실험 과정에서는 AIHub의 데이터셋을, 최종 모델 평가에서는 팀원들이 직접 웹캠으로 촬영한 5분 내외의 자체 개발 test set을 사용하였습니다. 아래는 자체 수집한 데이터셋 사진입니다.
+모델 실험 과정에서는 AIHub의 데이터셋을, 최종 모델 평가에서는 팀원들이 직접 웹캠으로 촬영한 5분 내외의 자체 개발 test set을 사용하였습니다.
 <br>
 <p align="center">
   <img src="https://github.com/user-attachments/assets/f10c8132-fd12-48e8-a942-6c880c4e3ae9" width="51%">
@@ -110,7 +110,7 @@ BrainBuddyAI : Deep Learning Based Engagement Measuring Model (CNN → LSTM)
 3. `python real_time.py`
 <br><br>
    *T_WINDOW와 STRIDE_SEC를 바꾸어 윈도우 크기, 추론 시간을 조정할 수 있습니다.<br>
-   *현재는 30프레임단위로 5초마다 추론하는 방식으로 구성되어 있어, 집중도 화면의 결과값에 딜레이가 있을 수 있습니다.<br>
+   *Defalut : 학습과정과 동일하게 T_WINDOW =30, STRIDE_SEC =5 따라서 집중도 화면의 결과값에는 대략 5초의 딜레이가 있습니다.<br>
  <br>
  <br>
 
