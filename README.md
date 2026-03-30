@@ -1,234 +1,244 @@
-# 프로젝트 명
-BrainBuddyAI : Deep Learning Based Engagement Measuring Model (CNN → LSTM)
+# 🧠 BrainBuddy — Real-time Engagement Analysis
 
-본 프로젝트에서는 **CNN → LSTM 구조**를 활용하여  
-영상 데이터를 기반으로 **집중도**를 측정하는 모델을 구현하고,  
-다양한 하이퍼파라미터 및 모델 구조 변경 실험을 통해 최적의 성능을 탐색하였습니다.
-<br><br>
+> **K-SoftVation Showcase 2025 — Grand Prize** (Minister of Science and ICT Award)  
+> Real-time engagement detection from webcam using Deep Learning
 
-## 기술 스택
-- 언어 & 환경
-![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
-	- Python 3.10.0
+---
 
-- 딥러닝 / 모델링
-![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=pytorch&logoColor=white)
-![Torchvision](https://img.shields.io/badge/Torchvision-%23EE4C2C.svg?logo=pytorch&logoColor=white)
-	- PyTorch – 모델 구현 및 학습
-	- Torchvision – CNN 백본 및 이미지 변환
+## 🏆 Award
 
-- 컴퓨터 비전 / 전처리
-![OpenCV](https://img.shields.io/badge/OpenCV-%23white.svg?logo=opencv&logoColor=black)
-![Mediapipe](https://img.shields.io/badge/Mediapipe-4285F4?logo=google&logoColor=white)
-	- OpenCV – 영상 프레임 처리
-	- Mediapipe FaceDetection – 얼굴 검출 및 크롭
+| Item | Detail |
+|------|--------|
+| Competition | K-Software Empowerment BootCamp — K-SoftVation Showcase 2025 |
+| Prize | **Grand Prize** (정보통신기획평가원장상) |
+| Team | Queen Never Cry |
+| Date | August 28, 2025 |
 
-- 평가 & 시각화
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E.svg?logo=scikit-learn&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-013243.svg?logo=plotly&logoColor=white)
-![UMAP](https://img.shields.io/badge/UMAP--learn-5D3FD3.svg?logo=python&logoColor=white)
-	- scikit-learn – 평가 지표 (F1, Recall, Confusion Matrix)
-	- Matplotlib – 학습 곡선, 혼동 행렬, 시각화
-	- UMAP-learn – 임베딩 차원 축소 및 시각화
-<br>
+---
 
-## 📂 폴더 구조
-```bash
-├── EDA
-│   ├── light_color_diff.py
-│   ├── t_SNE.py
-│   └── umap_features.py
-├── datasets
-│   ├── video_folder_dataset.py
-└── models
+## 📌 Overview
+
+BrainBuddy detects whether a person is **focused or unfocused** in real time using a webcam stream.  
+The model analyzes 30-frame sequences and returns an engagement probability.
+
+**My Role — AI & Data Lead:**
+- Identified domain gap between AI Hub training data and real-world webcam environment
+- Designed a 4-stage automated labeling pipeline using **CLIP (ViT-B/32)**
+- Achieved **AUC 0.997 / F1 0.963** on CNN (ResNet18) + Bi-LSTM
+- Built a complete **FastAPI + WebSocket serving pipeline** with ONNX optimization (post-competition)
+
+---
+
+## 📂 Project Structure
+
+```
+brainbuddy_AI/
+│
+├── 📁 app/                       # [추가] FastAPI 서빙 파이프라인
+│   ├── main.py                   # WebSocket 서버
+│   └── services/
+│       ├── preprocessor.py       # BGR→RGB, 얼굴 크롭, 정규화
+│       └── inference.py          # ONNX Runtime 추론 엔진
+│
+├── 📁 scripts/                   # [추가] 모델 변환
+│   └── export_onnx.py            # PyTorch → ONNX 변환
+│
+├── 📁 onnx_model/                # [추가] ONNX 모델 저장
+│
+├── 📁 preprocessing/             # CLIP 라벨링 파이프라인
+│   ├── clip1_1.py                # Zero-shot 라벨링
+│   ├── clip1_2.py                # Confidence 구간 분리
+│   ├── clip1_3.py                # Linear Probe 학습
+│   └── clip1_4.py                # 전체 데이터 재분류
+│
+├── 📁 models/                    # 모델 아키텍처
 │   ├── cnn_encoder.py
 │   ├── engagement_model.py
 │   └── face_crop.py
-└── preprocessing
-│   ├── pickle_labels/
-│   ├── check_label.py
-│   ├── extract_frames.py
-│   ├── extract_test_frames.py
-│   └── labeling.py
-└── test1/
-└── test2/
-└── test3/
-└── test4/
-└── real_time.py
-└── test.py
-└── train.py
-``` 
-<br>
+│
+├── 📁 EDA/                       # 탐색적 데이터 분석
+├── 📁 datasets/                  # 데이터셋 로더
+├── 📁 test1~4/                   # 실험 로그 & 분석
+│
+├── real_time.py                  # 로컬 실시간 추론
+├── train.py                      # 모델 학습
+└── requirements.txt
+```
 
-## 0. 모델 구조
-<img src="https://github.com/user-attachments/assets/4aace760-7b52-4cb1-bda2-6202143f7e62" width="500" ><br>
-30프레임 시퀀스 -> CNN(MobileNetV3-Large) -> LSTM -> 집중여부(0/1)
-<br><br><br>
+---
 
-## 1. 데이터 
-### 사용 데이터셋
-[학습태도 및 성향 관찰 데이터](https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=71715)
-<br>
+## Part 1. 🔬 AI Modeling (K-SoftVation 대회)
 
-### 전처리 및 라벨링
-`python -m preprocess2.ext` mediapipe로 facecrop 후 10초에 30frame씩 추출
+### 문제 — 도메인 갭 (Domain Gap)
 
-`python -m preprocess2.labeling` (폴더 경로, 라벨) 값을 .pkl 에 저장
-<br><br>
+AI Hub 안구추적 데이터셋으로 학습한 모델이 실제 웹캠 환경에서 완전히 실패.  
+원인: 기존 라벨의 신뢰도 문제 (고개 돌림 → "비집중", 스마트폰 시청 → "집중" 오표기)
 
-## 2. 모델 학습
-`python train.py`
-- Epoch: 15
-- Early Stopping patience: 4
-- Batch size = 4
-- Optimizer: AdamW
-- Loss Function: BCEWithLogitsLoss + CosineAnnealingLR
-- Gradient Accumulation = 8 step
-<br><br>
- 
-## 3. 모델 테스트 및 성능
- 
-| test set |  Accuracy | Recall | F1 |
-| --- |--- | --- | --- |
-| AIhub test set | 0.8088 | 0.8690 | 0.8149 |
-| 자체 개발 test set | 0.8103 | 0.8911 | 0.7993 |
+### 해결 — CLIP 기반 라벨링 자동화 파이프라인
 
-<br>
+| 단계 | 파일 | 내용 | 결과 |
+|------|------|------|------|
+| Step 1 | clip1_1.py | CLIP Zero-shot 라벨링 | 1,464 폴더 처리 |
+| Step 2 | clip1_2.py | Confidence 구간 분리 | high 147개 확보 |
+| Step 3 | clip1_3.py | Linear Probe 학습 | ROC-AUC 0.9806 |
+| Step 4 | clip1_4.py | 전체 재분류 (threshold=0.700) | 집중 890 / 비집중 574 |
 
-모델 실험 과정에서는 AIHub의 데이터셋을, 최종 모델 평가에서는 팀원들이 직접 웹캠으로 촬영한 5분 내외의 자체 개발 test set을 사용하였습니다.
-<br>
+### 모델 구조
+
+```
+CNN (ResNet18, ImageNet pretrained)
+    ↓ frame-level feature extraction (30 frames)
+Bi-LSTM (hidden=256, layers=2)
+    ↓ temporal sequence analysis
+FC → Sigmoid → Focused / Unfocused
+```
+
+### 학습 설정
+
+| Parameter | Value |
+|-----------|-------|
+| Input | 30-frame sequence, 224×224 |
+| Optimizer | Adam (lr=3e-4) |
+| Loss | BCEWithLogitsLoss |
+| Scheduler | CosineAnnealingLR |
+| Early Stopping | patience=5, monitor=AUC |
+| Validation | Group-split (data leakage 방지) |
+
+### 최종 성능
+
+| Metric | Score |
+|--------|-------|
+| AUC | **0.997** |
+| F1-Score | **0.963** |
+| Accuracy | 0.9505 |
+| Recall | 0.9778 |
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/f10c8132-fd12-48e8-a942-6c880c4e3ae9" width="51%">
   <img src="https://github.com/user-attachments/assets/e21fd614-98ae-430b-bffc-8d64eddc1d8f" width="47%">
 </p>
 
-<br><br>
+---
 
-## 4. 직접 로컬에서 실행해보기
-1. "best_model.pt"를 다운로드
-2. `real_time.py`의 CKPT_PATH에 해당 .pt 경로 지정
-3. `python real_time.py`
-<br><br>
-   *T_WINDOW와 STRIDE_SEC를 바꾸어 윈도우 크기, 추론 시간을 조정할 수 있습니다.<br>
-   *Defalut : 학습과정과 동일하게 T_WINDOW =30, STRIDE_SEC =5 따라서 집중도 화면의 결과값에는 대략 5초의 딜레이가 있습니다.<br>
- <br>
- <br>
+## Part 2. ⚡ Serving Pipeline (개인 추가 작업 — 2026.03.30)
 
+### 배경
 
+대회 당시 백엔드 연동 시 예측 확률이 0.02로 고정되는 치명적 버그 발생.  
+**원인:** 전처리 파이프라인 불일치 (BGR→RGB 변환 누락, 얼굴 크롭 미적용, ImageNet 정규화 누락)  
+→ 대회 종료 후 개인 프로젝트로 완전 해결.
 
-# 프로젝트 명
-BrainBuddyAI : Deep Learning Based Engagement Measuring Model (CNN → LSTM)
+### 시스템 아키텍처
 
-본 프로젝트에서는 **CNN → LSTM 구조**를 활용하여  
-영상 데이터를 기반으로 **집중도**를 측정하는 모델을 구현하고,  
-다양한 하이퍼파라미터 및 모델 구조 변경 실험을 통해 최적의 성능을 탐색하였습니다.
-<br><br>
+```
+Webcam Stream
+     ↓
+WebSocket (real-time frame reception, 10+ FPS)
+     ↓
+preprocessor.py
+  ├─ BGR → RGB conversion      ← 핵심 버그 수정
+  ├─ Face crop (Haar Cascade)  ← 얼굴 크롭 이식
+  └─ ImageNet normalization     ← 정규화 이식
+     ↓
+Sliding window buffer (deque, maxlen=30)
+     ↓
+inference.py (ONNX Runtime, CPUExecutionProvider)
+     ↓
+Engagement (%) + Latency (ms)
+```
 
-## 기술 스택
-- 언어 & 환경
-![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
-	- Python 3.10.0
+### 핵심 구현
 
-- 딥러닝 / 모델링
-![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=pytorch&logoColor=white)
-![Torchvision](https://img.shields.io/badge/Torchvision-%23EE4C2C.svg?logo=pytorch&logoColor=white)
-	- PyTorch – 모델 구현 및 학습
-	- Torchvision – CNN 백본 및 이미지 변환
+**① preprocessor.py — 전처리 엔진**
+- 과거 실패 원인 3단계 완벽 모듈화 (BGR→RGB, 얼굴 크롭, ImageNet 정규화)
+- 트러블슈팅: Python 3.13 환경 MediaPipe 충돌 → OpenCV Haar Cascade로 전면 교체
 
-- 컴퓨터 비전 / 전처리
-![OpenCV](https://img.shields.io/badge/OpenCV-%23white.svg?logo=opencv&logoColor=black)
-![Mediapipe](https://img.shields.io/badge/Mediapipe-4285F4?logo=google&logoColor=white)
-	- OpenCV – 영상 프레임 처리
-	- Mediapipe FaceDetection – 얼굴 검출 및 크롭
+**② export_onnx.py — ONNX 변환기**
+- PyTorch 모델 → 배포용 ONNX 포맷 변환
+- `ServingWrapper`: Sigmoid 연산 모델 내부에 포함
+- `dynamic_axes`: 배치 사이즈 확장 유연 대응
 
-- 평가 & 시각화
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E.svg?logo=scikit-learn&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-013243.svg?logo=plotly&logoColor=white)
-![UMAP](https://img.shields.io/badge/UMAP--learn-5D3FD3.svg?logo=python&logoColor=white)
-	- scikit-learn – 평가 지표 (F1, Recall, Confusion Matrix)
-	- Matplotlib – 학습 곡선, 혼동 행렬, 시각화
-	- UMAP-learn – 임베딩 차원 축소 및 시각화
-<br>
+**③ inference.py — 추론 엔진**
+- `onnxruntime` CPUExecutionProvider 활용
+- Latency 측정 로직 포함 → 응답 페이로드에 포함
 
-## 📂 폴더 구조
+**④ main.py — FastAPI 서버**
+- WebSocket 채택 → 초당 10프레임 이상 실시간 수신
+- `collections.deque(maxlen=30)` 슬라이딩 윈도우 버퍼
+- 30프레임 버퍼가 찰 때만 추론 → 메모리 최적화
+
+### 성과
+
+| 항목 | 결과 |
+|------|------|
+| End-to-End 파이프라인 | ✅ 웹캠 → 집중도(%) 출력 전체 사이클 정상 구동 |
+| CPU Latency | ✅ **약 890ms** (30프레임 기준, 1초 이내 실시간 처리) |
+| 전처리 이식 | ✅ BGR→RGB, 얼굴 크롭, ImageNet 정규화 완벽 구현 |
+
+---
+
+## 🚀 How to Run
+
+### 로컬 실시간 추론 (대회 버전)
 ```bash
-├── EDA
-│   ├── light_color_diff.py
-│   ├── t_SNE.py
-│   └── umap_features.py
-├── datasets
-│   ├── video_folder_dataset.py
-└── models
-│   ├── cnn_encoder.py
-│   ├── engagement_model.py
-│   └── face_crop.py
-└── preprocessing
-│   ├── pickle_labels/
-│   ├── check_label.py
-│   ├── extract_frames.py
-│   ├── extract_test_frames.py
-│   └── labeling.py
-└── test1/
-└── test2/
-└── test3/
-└── test4/
-└── real_time.py
-└── test.py
-└── train.py
-``` 
-<br>
+# 1. 모델 가중치 다운로드 후 경로 지정
+# real_time.py의 CKPT_PATH 수정
 
-## 0. 모델 구조
-<img src="https://github.com/user-attachments/assets/4aace760-7b52-4cb1-bda2-6202143f7e62" width="500" ><br>
-30프레임 시퀀스 -> CNN(MobileNetV3-Large) -> LSTM -> 집중여부(0/1)
-<br><br><br>
+# 2. 실행
+python real_time.py
+```
+> T_WINDOW=30, STRIDE_SEC=5 기준 약 5초 딜레이 발생
 
-## 1. 데이터 
-### 사용 데이터셋
-[학습태도 및 성향 관찰 데이터](https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=71715)
-<br>
+### FastAPI 서빙 (개인 추가 버전)
+```bash
+# 1. 패키지 설치
+pip install -r requirements.txt
 
-### 전처리 및 라벨링
-`python -m preprocess2.ext` mediapipe로 facecrop 후 10초에 30frame씩 추출
+# 2. ONNX 변환
+python scripts/export_onnx.py
 
-`python -m preprocess2.labeling` (폴더 경로, 라벨) 값을 .pkl 에 저장
-<br><br>
+# 3. 서버 실행
+uvicorn app.main:app --reload
 
-## 2. 모델 학습
-`python train.py`
-- Epoch: 15
-- Early Stopping patience: 4
-- Batch size = 4
-- Optimizer: AdamW
-- Loss Function: BCEWithLogitsLoss + CosineAnnealingLR
-- Gradient Accumulation = 8 step
-<br><br>
- 
-## 3. 모델 테스트 및 성능
- 
-| test set |  Accuracy | Recall | F1 |
-| --- |--- | --- | --- |
-| AIhub test set | 0.8088 | 0.8690 | 0.8149 |
-| 자체 개발 test set | 0.8103 | 0.8911 | 0.7993 |
+# 4. WebSocket 클라이언트로 ws://localhost:8000/ws 연결
+```
 
-<br>
+---
 
-모델 실험 과정에서는 AIHub의 데이터셋을, 최종 모델 평가에서는 팀원들이 직접 웹캠으로 촬영한 5분 내외의 자체 개발 test set을 사용하였습니다.
-<br>
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/f10c8132-fd12-48e8-a942-6c880c4e3ae9" width="51%">
-  <img src="https://github.com/user-attachments/assets/e21fd614-98ae-430b-bffc-8d64eddc1d8f" width="47%">
-</p>
+## 🛣️ Roadmap
 
-<br><br>
+- [x] CLIP 기반 라벨링 파이프라인
+- [x] CNN + Bi-LSTM 모델 학습 (AUC 0.997)
+- [x] FastAPI + WebSocket 서빙 파이프라인
+- [x] ONNX 변환 + Latency 최적화 (~890ms)
+- [x] 개인 GitHub 레포 이관
+- [ ] Docker Compose 배포 환경 구성
+- [ ] 아키텍처 다이어그램 추가
+- [ ] 실제 학습 가중치 확보 후 정확도 검증
 
-## 4. 직접 로컬에서 실행해보기
-1. "best_model.pt"를 다운로드
-2. `real_time.py`의 CKPT_PATH에 해당 .pt 경로 지정
-3. `python real_time.py`
-<br><br>
-   *T_WINDOW와 STRIDE_SEC를 바꾸어 윈도우 크기, 추론 시간을 조정할 수 있습니다.<br>
-   *Defalut : 학습과정과 동일하게 T_WINDOW =30, STRIDE_SEC =5 따라서 집중도 화면의 결과값에는 대략 5초의 딜레이가 있습니다.<br>
- <br>
- <br>
+---
 
+## 🧰 Tech Stack
+
+| Category | Tech |
+|----------|------|
+| Modeling | PyTorch, ResNet18, Bi-LSTM, CLIP (ViT-B/32) |
+| Preprocessing | OpenCV, Haar Cascade, Torchvision, MediaPipe |
+| Labeling | CLIP Zero-shot, Logistic Regression (Linear Probe) |
+| Serving | FastAPI, WebSocket, ONNX Runtime |
+| Evaluation | scikit-learn, UMAP, Matplotlib |
+
+---
+
+## 👤 My Role
+
+**AI & Data Lead** — Team Queen Never Cry
+
+| 기여 항목 | 내용 |
+|-----------|------|
+| 도메인 갭 발견 | 기존 라벨 신뢰도 문제 직접 발견 및 원인 분석 |
+| CLIP 파이프라인 | 4단계 자동 라벨링 파이프라인 설계 및 구현 |
+| 모델 학습 | ResNet18 + Bi-LSTM, AUC 0.997 달성 |
+| 서빙 파이프라인 | FastAPI + WebSocket + ONNX 전체 구조 설계 및 구현 |
+
+---
