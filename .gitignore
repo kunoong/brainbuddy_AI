@@ -68,3 +68,10 @@ myenv/
 *.bak
 *.swp
 *.~lock.*
+
+# AI Models
+onnx_model/
+*.onnx
+*.onnx.data
+*.pth
+*.pt
